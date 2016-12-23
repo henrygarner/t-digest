@@ -1,6 +1,4 @@
-(ns t-digest.core
-  (:refer-clojure :rename {conj cconj})
-  (:import [com.tdunning.math.stats TDigest]))
+(ns t-digest.core)
 
 (defn abs [x]
   (if (neg? x) (- x) x))
@@ -19,8 +17,8 @@
   (if (contains? centroids centroid)
     (let [existing (get centroids centroid)]
       (-> (disj centroids existing)
-          (cconj (update existing :count + count))))
-    (cconj centroids centroid)))
+          (conj (update existing :count + count))))
+    (conj centroids centroid)))
 
 (defn compute-centroid-quantile
   [centroids n {:keys [count] :as centroid}]
@@ -64,28 +62,54 @@
       (update-centroid centroids candidate x w)
       (add-centroid centroids {:mean x :count w}))))
 
-(defn conj
+(defn assoc-value
   ([digest x]
-   (conj digest x 1))
+   (assoc-value digest x 1))
   ([{:keys [n d centroids] :as digest} x w]
    (let [new-n (+ n w)]
      (-> (assoc digest :n new-n)
          (update :centroids add-value new-n d x w)))))
 
-(defn percentile
-  [{:keys [n d centroids]} p]
-  (let [p (min (max 0 p) 100)
-        p (* 0.01 p n)]
-    (if (< p (-> centroids first :count))
-      (-> centroids first :mean)
-      (let [stats (partition 3 1 (rest (reductions (fn [stats {:keys [count mean]}]
-                                                     (-> (assoc stats :mean mean)
-                                                         (assoc :count count)
-                                                         (update :total + count)))
-                                                   {:count 0 :total 0}
-                                                   centroids)))]
-        (or (some (fn [[w x y]]
-                    (when (< p (:total x))
-                      (let [delta (/ (- (:mean y) (:mean w)) 2.0)]
-                        (+ (:mean x) (* (- (/ (- p (:total w)) (:count x)) 0.5) delta))))) stats)
-            (-> centroids last :mean))))))
+(defn weighted-mean
+  [i pi ni pm nm]
+  (let [d (- ni pi)
+        pw (/ (- ni i) d)
+        nw (/ (- i pi) d)]
+    (+ (* pm pw)
+       (* nm nw))))
+
+(defn quantile
+  [{:keys [n d centroids]} q]
+  (let [q (min (max 0.0 q) 1.0)
+        c (count centroids)
+        index (* q (dec n))]
+    (cond
+      (zero? c) nil
+      (= c 1) (-> centroids first :mean)
+      :else
+      (let [indices (->> (reductions (fn [{:keys [total]} {:keys [count] :as centroid}]
+                                       (-> (assoc centroid :total (+ count total))
+                                           (assoc :index total)))
+                                     {:total 0} centroids)
+                         (rest)
+                         (partition 2 1))]
+        (or (some (fn [[a b]]
+                    (when (<= (:index a) index (:index b))
+                      (let [pi (dec (Math/ceil index))
+                            ni (Math/ceil index)
+                            pm (:mean a)
+                            nm (if (= ni (float (:index b)))
+                                 (:mean b) (:mean a))]
+                        (weighted-mean index pi ni pm nm))))
+                  indices)
+            (let [[a b] (last indices)
+                  pi (dec (Math/ceil index))
+                  ni (Math/ceil index)
+                  pm (if (= (float (:index a)) pi)
+                       (:mean a) (:mean b))
+                  nm (:mean b)]
+              (weighted-mean index pi ni pm nm)))))))
+
+(defn median [digest]
+  (quantile digest 0.5))
+
