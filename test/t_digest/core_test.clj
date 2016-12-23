@@ -27,14 +27,17 @@
 
 (deftest median-test
   (testing ""
-    #_(let [histogram (make-histogram (shuffle (range 10)))]
-        (is (=ish 4.5 (median histogram))))
+    (let [histogram (make-histogram [])]
+      (is (nil? (median histogram))))
 
-    #_(let [histogram (make-histogram (shuffle (range 100)))]
-        (is (=ish 49.5 (median histogram))))
+    (let [histogram (make-histogram (shuffle (range 10)))]
+      (is (=ish 4.5 (median histogram))))
 
-    #_(let [histogram (make-histogram (shuffle (range 1000)))]
-        (is (=ish 499.5 (median histogram))))
+    (let [histogram (make-histogram (shuffle (range 100)))]
+      (is (=ish 49.5 (median histogram))))
+
+    (let [histogram (make-histogram (shuffle (range 1000)))]
+      (is (=ish 499 (median histogram))))
 
     (let [coll [3 1.0 3]
           h1 (make-histogram coll)

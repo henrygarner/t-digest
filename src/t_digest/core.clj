@@ -93,23 +93,29 @@
                                      {:total 0} centroids)
                          (rest)
                          (partition 2 1))]
-        (or (some (fn [[a b]]
-                    (when (<= (:index a) index (:index b))
-                      (let [pi (dec (Math/ceil index))
-                            ni (Math/ceil index)
-                            pm (:mean a)
-                            nm (if (= ni (float (:index b)))
-                                 (:mean b) (:mean a))]
-                        (weighted-mean index pi ni pm nm))))
-                  indices)
-            (let [[a b] (last indices)
-                  pi (dec (Math/ceil index))
-                  ni (Math/ceil index)
-                  pm (if (= (float (:index a)) pi)
-                       (:mean a) (:mean b))
-                  nm (:mean b)]
-              (weighted-mean index pi ni pm nm)))))))
+        (some (fn [[a b]]
+                (cond
+                  (<= (:index a) index (:index b))
+                  (let [pi (dec (Math/ceil index))
+                        ni (Math/ceil index)
+                        pm (:mean a)
+                        nm (if (= ni (float (:index b)))
+                             (:mean b) (:mean a))]
+                    (weighted-mean index pi ni pm nm))
+
+                  (= (:total b) n)
+                  (let [pi (dec (Math/ceil index))
+                        ni (Math/ceil index)
+                        pm (if (= (float (:index a)) pi)
+                             (:mean a) (:mean b))
+                        nm (:mean b)]
+                    (weighted-mean index pi ni pm nm))))
+              indices)))))
 
 (defn median [digest]
   (quantile digest 0.5))
+
+(defn iqr [digest]
+  (vector (quantile digest 0.25)
+          (quantile digest 0.75)))
 
