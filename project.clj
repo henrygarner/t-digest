@@ -6,5 +6,8 @@
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.8.0"]
                                   [org.clojure/test.check "0.9.0"]
                                   [com.tdunning/t-digest "3.1"]]
-                   ;; :java-source-paths ["java/t-digest/src/main/java"]
-                   :plugins [[lein-auto "0.1.3"]]}})
+                   :plugins [[lein-auto "0.1.3"]
+                             [lein-codox "0.9.4"]]}}
+  :codox {:namespaces [t-digest.core]
+          :project {:name "t-digest"}
+          :source-uri "https://github.com/henrygarner/t-digest/blob/v0.1.0/{filepath}#L{line}"})

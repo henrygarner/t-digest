@@ -10,8 +10,8 @@
                 :par       4})
 
 (defn histogram-rf
-  ([] empty-digest)
-  ([acc x] (assoc-value acc x))
+  ([] (create))
+  ([acc x] (insert acc x))
   ([acc] acc))
 
 (defn make-histogram
@@ -23,7 +23,14 @@
   (reduce #(doto %1 (.add %2 1)) (TDigest/createDigest compression) xs))
 
 (defn =ish [a b]
-  (< (/ (abs (- a b)) (max a b)) 0.001))
+  (< (/ (abs (- a b)) (max a b)) 0.005))
+
+(def numeric
+  (gen/one-of [(gen/double* {:infinite? false :NaN? false})
+               gen/int gen/large-integer]))
+
+(def non-empty-vector
+  (comp gen/not-empty (partial gen/vector)))
 
 (deftest median-test
   (testing ""
@@ -45,13 +52,6 @@
       (is (= (quantile h1 0.51)
              (.quantile h2 0.51))))))
 
-(def numeric
-  (gen/one-of [(gen/double* {:infinite? false :NaN? false})
-               gen/int gen/large-integer]))
-
-(def non-empty-vector
-  (comp gen/not-empty (partial gen/vector)))
-
 (defspec reference-version-median-equivalence
   test-opts
   (for-all [coll (non-empty-vector numeric)
@@ -62,5 +62,3 @@
                  h2 (make-reference-histogram compression coll)]
              (is (= (double (quantile h1 q))
                     (.quantile h2 q))))))
-
-
