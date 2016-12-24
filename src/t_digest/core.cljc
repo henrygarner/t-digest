@@ -77,14 +77,14 @@
 ;; Public API ;;
 
 (defn create
-  "Creates an empty t-digest"
+  "Creates an empty t-digest."
   ([]
    (create {}))
   ([{:keys [compression] :or {compression 100} :as options}]
    (assoc empty-digest :compression compression)))
 
 (defn insert
-  "Inserts a value into the digest with an optional weight"
+  "Inserts a value into the digest with an optional weight."
   ([digest x]
    (insert digest x 1))
   ([{:keys [n d centroids] :as digest} x w]
@@ -94,7 +94,7 @@
 
 (defn quantile
   "Calculates the minimum value x such that we think that the proportion of samples
-   <= x is q"
+   <= x is q."
   [{:keys [n d centroids]} q]
   (let [q (min (max 0.0 q) 1.0)
         c (count centroids)
@@ -129,7 +129,7 @@
               indices)))))
 
 (defn median
-  "Calculates the 0.5 quantile"
+  "Calculates the 0.5 quantile."
   [digest]
   (quantile digest 0.5))
 

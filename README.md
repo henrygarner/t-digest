@@ -2,7 +2,7 @@
 
 A Clojure(Script) library for on-line accumulation of rank-based statistics using the [t-digest](https://github.com/tdunning/t-digest).
 
-## Documentaion
+## Documentation
 
 You can view the documentation [here](https://henrygarner.github.io/t-digest/).
 
