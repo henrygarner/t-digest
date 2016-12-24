@@ -1,4 +1,4 @@
-(defproject t-digest "0.1.0-SNAPSHOT"
+(defproject t-digest "0.1.0"
   :description "A Clojure(Script) library for on-line accumulation of rank-based statistics using the t-digest"
   :url "https://github.com/henrygarner/t-digest"
   :license {:name "Eclipse Public License"
